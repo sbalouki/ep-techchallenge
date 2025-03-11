@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Booking;
 use App\Client;
 use App\Services\ClientService;
 use App\User;
@@ -25,5 +26,18 @@ class ClientServiceTest extends TestCase
         $results = resolve(ClientService::class)->getClientsByUserId($user->id);
 
         $this->assertEquals([$myFirstClient->id, $mySecondClient->id], $results->pluck('id')->toArray());
+    }
+    /** @test */
+    public function it_loads_the_bookin_count()
+    {
+        $user = factory(User::class)->create();
+        $myClient = factory(Client::class)->create(['user_id' => $user->id]);
+        factory(Booking::class)->create(['client_id' => $myClient->id]);
+        factory(Booking::class)->create(['client_id' => $myClient->id]);
+
+        $results = resolve(ClientService::class)->getClientsByUserId($user->id);
+
+        $this->assertEquals(2, $results->first()->bookings_count);
+
     }
 }

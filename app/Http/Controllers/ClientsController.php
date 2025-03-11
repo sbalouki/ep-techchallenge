@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Client;
 use App\Http\Requests\StoreClientRequest;
 use App\Services\ClientService;
-use Illuminate\Http\Request;
 
 class ClientsController extends Controller
 {
@@ -13,11 +12,9 @@ class ClientsController extends Controller
     {
         $clients = $clientService->getClientsByUserId(auth()->id());
 
-        foreach ($clients as $client) {
-            $client->append('bookings_count'); // TODO : It causes a request on each client. To refactor
-        }
-
-        return view('clients.index', ['clients' => $clients]);
+        return view('clients.index', [
+            'clients' => $clients
+        ]);
     }
 
     public function create()
