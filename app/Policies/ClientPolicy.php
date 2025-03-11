@@ -69,7 +69,11 @@ class ClientPolicy
      */
     public function delete(User $user, Client $client)
     {
-        //
+        if ($client->user_id === $user->id) {
+            return true;
+        }
+
+        abort(404);
     }
 
     /**

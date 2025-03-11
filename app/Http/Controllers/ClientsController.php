@@ -49,8 +49,10 @@ class ClientsController extends Controller
         return $client;
     }
 
-    public function destroy($client)
+    public function destroy($clientId)
     {
-        Client::destroy($client);
+        $this->authorize('delete', Client::find($clientId));
+
+        Client::findOrFail($clientId)->delete();
     }
 }

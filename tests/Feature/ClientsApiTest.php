@@ -79,11 +79,14 @@ class ClientsApiTest extends TestCase
     }
 
     /** @test */
-    public function it_destroys_a_client_and_returns_a_204_status() {
+    public function it_destroys_a_users_client_and_returns_a_204_status() {
         $user = factory(User::class)->create();
-        $client = factory(Client::class)->create();
+        $myClient = factory(Client::class)->create(['user_id' => $user->id]);
+        $client =  factory(Client::class)->create();
 
-        $this->actingAs($user)->delete("/clients/$client->id")->assertStatus(200);
-        $this->assertNull(Client::find($client->id));
+        $this->actingAs($user)->delete("/clients/$myClient->id")->assertStatus(200);
+        $this->actingAs($user)->delete("/clients/$client->id")->assertStatus(404);
+
+        $this->assertNull(Client::find($myClient->id));
     }
 }
