@@ -83,7 +83,12 @@ import axios from 'axios';
 export default {
     name: 'ClientShow',
 
-    props: ['client'],
+    props: {
+        client: {
+            type: Object,
+            required: true
+        }
+    },
 
     data() {
         return {
