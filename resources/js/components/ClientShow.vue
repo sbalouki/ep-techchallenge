@@ -101,8 +101,13 @@ export default {
             this.currentTab = newTab;
         },
 
-        deleteBooking(booking) {
-            axios.delete(`/bookings/${booking.id}`);
+        async deleteBooking(booking) {
+            try {
+                await axios.delete(`/bookings/${booking.id}`);
+            } catch (error) {
+                console.log(error)
+                return
+            }
         }
     }
 }

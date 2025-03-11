@@ -13,7 +13,7 @@ class ClientsController extends Controller
         $clients = $clientService->getClientsByUserId(auth()->id());
 
         foreach ($clients as $client) {
-            $client->append('bookings_count');
+            $client->append('bookings_count'); // TODO : It causes a request on each client. To refactor
         }
 
         return view('clients.index', ['clients' => $clients]);
@@ -49,8 +49,6 @@ class ClientsController extends Controller
 
     public function destroy($client)
     {
-        Client::where('id', $client)->delete();
-
-        return 'Deleted';
+        Client::destroy($client);
     }
 }

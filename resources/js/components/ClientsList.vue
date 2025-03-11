@@ -16,7 +16,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="client in clients" :key="client.id">
+                <tr v-for="client in internalClients" :key="client.id">
                     <td>{{ client.name }}</td>
                     <td>{{ client.email }}</td>
                     <td>{{ client.phone }}</td>
@@ -39,9 +39,29 @@ export default {
 
     props: ['clients'],
 
+    data () {
+        return {
+            internalClients: []
+        }
+    },
+
+    created () {
+        this.internalClients = this.clients
+    },
+
     methods: {
-        deleteClient(client) {
-            axios.delete(`/clients/${client.id}`);
+        async deleteClient(client) {
+            try {
+                await axios.delete(`/clients/${client.id}`);
+            } catch (error) {
+                console.log(error)
+                return
+            }
+
+            this.internalClients = this.internalClients.filter(c => c.id !== client.id)
+
+            // TODO: Display a success or failure message
+            // this.$emit('deleted', client.id)
         }
     }
 }
