@@ -58,11 +58,10 @@ export default {
     },
 
     methods: {
-        storeClient() {
-            axios.post('/clients', this.client)
-                .then((data) => {
-                    window.location.href = data.data.url;
-                });
+        async storeClient() {
+            let data = await axios.post('/clients', this.client)
+
+            window.location.href = data.data.client.url;
         }
     }
 }
