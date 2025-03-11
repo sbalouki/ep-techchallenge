@@ -6,12 +6,13 @@ use App\Actions\StoreClient;
 use App\Client;
 use App\Http\Requests\StoreClientRequest;
 use App\Http\Resources\ClientResource;
-use App\Services\ClientService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class ClientsController extends Controller
 {
-    public function index(ClientService $clientService)
+    public function index(): View
     {
         $clients = Client::withCount('bookings')->whereUserId(auth()->id())->get();
 
@@ -20,12 +21,12 @@ class ClientsController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): View
     {
         return view('clients.create');
     }
 
-    public function show($clientId)
+    public function show($clientId): View
     {
         $client = Client::with('bookings')->find($clientId);
 
@@ -36,7 +37,7 @@ class ClientsController extends Controller
         ]);
     }
 
-    public function store(StoreClientRequest $request)
+    public function store(StoreClientRequest $request): JsonResponse
     {
         $client = resolve(StoreClient::class)->execute(
             auth()->id(),
@@ -53,7 +54,7 @@ class ClientsController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function destroy(int $clientId)
+    public function destroy(int $clientId): JsonResponse
     {
         $client = Client::findOrFail($clientId);
 

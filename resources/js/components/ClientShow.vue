@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1 class="mb-6">Clients -> {{ client.name }}</h1>
+        <h1 class="mb-6">Clients -> {{ internalClient.name }}</h1>
 
         <div class="flex">
             <div class="w-1/3 mr-5">
@@ -10,19 +10,19 @@
                         <tbody>
                             <tr>
                                 <th class="text-gray-600 pr-3">Name</th>
-                                <td>{{ client.name }}</td>
+                                <td>{{ internalClient.name }}</td>
                             </tr>
                             <tr>
                                 <th class="text-gray-600 pr-3">Email</th>
-                                <td>{{ client.email }}</td>
+                                <td>{{ internalClient.email }}</td>
                             </tr>
                             <tr>
                                 <th class="text-gray-600 pr-3">Phone</th>
-                                <td>{{ client.phone }}</td>
+                                <td>{{ internalClient.phone }}</td>
                             </tr>
                             <tr>
                                 <th class="text-gray-600 pr-3">Address</th>
-                                <td>{{ client.address }}<br/>{{ client.postcode + ' ' + client.city }}</td>
+                                <td>{{ internalClient.address }}<br/>{{ internalClient.postcode + ' ' + internalClient.city }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -38,7 +38,7 @@
                 <!-- Bookings -->
                 <div class="bg-white rounded p-4" v-if="currentTab == 'bookings'">
                     <bookings-list
-                        :bookings="client.bookings"
+                        :bookings="internalClient.bookings"
                         @delete="deleteBooking"
                     />
                 </div>
@@ -70,7 +70,12 @@ export default {
     data() {
         return {
             currentTab: 'bookings',
+            internalClient: null
         }
+    },
+
+    created () {
+        this.internalClient = this.client
     },
 
     methods: {
@@ -85,6 +90,8 @@ export default {
                 console.log(error)
                 return
             }
+
+            this.internalClient.bookings = this.internalClient.bookings.filter(b => b.id !== booking.id)
         }
     }
 }

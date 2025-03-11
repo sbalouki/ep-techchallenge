@@ -46,7 +46,7 @@ export default {
     },
 
     created () {
-        this.internalClients = this.clients
+        this.internalClients = [...this.clients]
     },
 
     methods: {
