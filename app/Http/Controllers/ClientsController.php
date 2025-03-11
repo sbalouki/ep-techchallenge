@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Client;
+use App\Services\ClientService;
 use Illuminate\Http\Request;
 
 class ClientsController extends Controller
 {
-    public function index()
+    public function index(ClientService $clientService)
     {
-        $clients = Client::all();
+        $clients = $clientService->getClientsByUserId(auth()->id());
 
         foreach ($clients as $client) {
             $client->append('bookings_count');
@@ -26,6 +27,8 @@ class ClientsController extends Controller
     public function show($clientId)
     {
         $client = Client::with('bookings')->find($clientId);
+
+        $this->authorize('view', $client);
 
         return view('clients.show', ['client' => $client]);
     }
