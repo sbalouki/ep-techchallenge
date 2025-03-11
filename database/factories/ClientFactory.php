@@ -10,7 +10,7 @@ $factory->define(Client::class, function (Faker $faker) {
     return [
         'name' => $faker->name,
         'email' => $faker->email,
-        'phone' => $faker->phoneNumber,
+        'phone' => $faker->e164PhoneNumber(),
         'address' => $faker->streetAddress,
         'city' => $faker->city,
         'postcode' => $faker->postcode,

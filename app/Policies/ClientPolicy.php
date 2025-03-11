@@ -46,7 +46,6 @@ class ClientPolicy
      */
     public function create(User $user)
     {
-        //
     }
 
     /**
