@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Actions\StoreClient;
 use Illuminate\Support\Str;
 use App\Client;
 use App\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Http\Response;
 use Tests\TestCase;
 
 class ClientsApiTest extends TestCase
@@ -16,7 +16,7 @@ class ClientsApiTest extends TestCase
     use WithFaker;
 
     /** @test */
-    public function it_cannot_view_other_users_clients() {
+    public function user_can_view_only_their_clients() {
         $user = factory(User::class)->create();
         $client = factory(Client::class)->create(['user_id' => $user->id]);
         $otherClient = factory(Client::class)->create();
@@ -26,13 +26,45 @@ class ClientsApiTest extends TestCase
     }
 
     /** @test */
-    public function it_has_a_default_user_id() {
+    public function it_destroys_a_users_client_and_returns_a_204_status() {
         $user = factory(User::class)->create();
-        $client = factory(Client::class)->raw();
+        $myClient = factory(Client::class)->create(['user_id' => $user->id]);
+        $client =  factory(Client::class)->create();
 
-        $this->actingAs($user)->post('clients', $client)->assertCreated();
+        $this->actingAs($user)->delete("/clients/$myClient->id")->assertStatus(204);
+        $this->actingAs($user)->delete("/clients/$client->id")->assertStatus(404);
 
-        $this->assertEquals(Client::first()->user_id, auth()->id());
+        $this->assertNull(Client::find($myClient->id));
+    }
+
+    /** @test */
+    public function it_fails_trying_to_delete_a_non_existing_client() {
+        $user = factory(User::class)->create();
+
+        $this->actingAs($user)->delete("/clients/-1")->assertStatus(404);
+    }
+
+    /** @test */
+    public function it_creates_a_client_with_a_default_user_id() {
+        $user = factory(User::class)->create();
+        $client = factory(Client::class)->make();
+
+        $this->mock(StoreClient::class, function ($mock) use ($client, $user) {
+            $mock->shouldReceive('execute')
+                ->once()
+                ->with(
+                    $user->id,
+                    $client->name, 
+                    $client->email,
+                    $client->phone,
+                    $client->address,
+                    $client->city,
+                    $client->postcode
+                )
+                ->andReturn($client);
+        });
+
+        $this->actingAs($user)->post('clients', $client->toArray())->assertCreated();
     }
 
     /**
@@ -76,24 +108,5 @@ class ClientsApiTest extends TestCase
         $this->actingAs($user)->post('clients', factory(Client::class)->raw(['phone' => '+3396556655']))->assertCreated();
         $this->actingAs($user)->post('clients', factory(Client::class)->raw(['phone' => '01234567891']))->assertCreated();
         $this->actingAs($user)->post('clients', factory(Client::class)->raw(['phone' => '05 96 55 66 55']))->assertCreated();
-    }
-
-    /** @test */
-    public function it_destroys_a_users_client_and_returns_a_204_status() {
-        $user = factory(User::class)->create();
-        $myClient = factory(Client::class)->create(['user_id' => $user->id]);
-        $client =  factory(Client::class)->create();
-
-        $this->actingAs($user)->delete("/clients/$myClient->id")->assertStatus(200);
-        $this->actingAs($user)->delete("/clients/$client->id")->assertStatus(404);
-
-        $this->assertNull(Client::find($myClient->id));
-    }
-
-    /** @test */
-    public function it_fails_trying_to_delete_a_non_existing_client() {
-        $user = factory(User::class)->create();
-
-        $this->actingAs($user)->delete("/clients/-1")->assertStatus(404);
     }
 }

@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\StoreClient;
 use App\Client;
 use App\Http\Requests\StoreClientRequest;
+use App\Http\Resources\ClientResource;
 use App\Services\ClientService;
+use Illuminate\Http\Response;
 
 class ClientsController extends Controller
 {
     public function index(ClientService $clientService)
     {
-        $clients = $clientService->getClientsByUserId(auth()->id());
+        $clients = Client::withCount('bookings')->whereUserId(auth()->id())->get();
 
         return view('clients.index', [
             'clients' => $clients
@@ -28,30 +31,36 @@ class ClientsController extends Controller
 
         $this->authorize('view', $client);
 
-        return view('clients.show', ['client' => $client]);
+        return view('clients.show', [
+            'client' => new ClientResource($client)
+        ]);
     }
 
     public function store(StoreClientRequest $request)
     {
-        $client = new Client;
-        $client->name = $request->get('name');
-        $client->email = $request->get('email');
-        $client->phone = $request->get('phone');
-        $client->address = $request->get('address');
-        $client->city = $request->get('city');
-        $client->postcode = $request->get('postcode');
-        $client->user_id = auth()->id();
-        $client->save();
+        $client = resolve(StoreClient::class)->execute(
+            auth()->id(),
+            $request->get('name'),
+            $request->get('email'),
+            $request->get('phone'),
+            $request->get('address'),
+            $request->get('city'),
+            $request->get('postcode')
+        );
 
-        return $client;
+        return response()->json([
+            'client' => new ClientResource($client)
+        ], Response::HTTP_CREATED);
     }
 
-    public function destroy($clientId)
+    public function destroy(int $clientId)
     {
         $client = Client::findOrFail($clientId);
 
         $this->authorize('delete', $client);
 
         $client->delete();
+
+        return response()->json([], Response::HTTP_NO_CONTENT);
     }
 }
