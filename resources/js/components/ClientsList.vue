@@ -55,6 +55,7 @@ export default {
                 await axios.delete(`/clients/${client.id}`);
             } catch (error) {
                 console.log(error)
+
                 return
             }
 
