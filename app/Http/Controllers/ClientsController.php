@@ -51,8 +51,10 @@ class ClientsController extends Controller
 
     public function destroy($clientId)
     {
-        $this->authorize('delete', Client::find($clientId));
+        $client = Client::findOrFail($clientId);
 
-        Client::findOrFail($clientId)->delete();
+        $this->authorize('delete', $client);
+
+        $client->delete();
     }
 }

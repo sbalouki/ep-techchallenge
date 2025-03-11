@@ -89,4 +89,11 @@ class ClientsApiTest extends TestCase
 
         $this->assertNull(Client::find($myClient->id));
     }
+
+    /** @test */
+    public function it_fails_trying_to_delete_a_non_existing_client() {
+        $user = factory(User::class)->create();
+
+        $this->actingAs($user)->delete("/clients/-1")->assertStatus(404);
+    }
 }
