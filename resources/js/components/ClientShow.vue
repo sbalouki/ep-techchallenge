@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1 class="mb-6">Clients -> {{ client.name }}</h1>
+        <h1 class="mb-6">Clients -> {{ internalClient.name }}</h1>
 
         <div class="flex">
             <div class="w-1/3 mr-5">
@@ -10,19 +10,19 @@
                         <tbody>
                             <tr>
                                 <th class="text-gray-600 pr-3">Name</th>
-                                <td>{{ client.name }}</td>
+                                <td>{{ internalClient.name }}</td>
                             </tr>
                             <tr>
                                 <th class="text-gray-600 pr-3">Email</th>
-                                <td>{{ client.email }}</td>
+                                <td>{{ internalClient.email }}</td>
                             </tr>
                             <tr>
                                 <th class="text-gray-600 pr-3">Phone</th>
-                                <td>{{ client.phone }}</td>
+                                <td>{{ internalClient.phone }}</td>
                             </tr>
                             <tr>
                                 <th class="text-gray-600 pr-3">Address</th>
-                                <td>{{ client.address }}<br/>{{ client.postcode + ' ' + client.city }}</td>
+                                <td>{{ internalClient.address }}<br/>{{ internalClient.postcode + ' ' + internalClient.city }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -37,33 +37,10 @@
 
                 <!-- Bookings -->
                 <div class="bg-white rounded p-4" v-if="currentTab == 'bookings'">
-                    <h3 class="mb-3">List of client bookings</h3>
-
-                    <template v-if="client.bookings && client.bookings.length > 0">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>Notes</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="booking in client.bookings" :key="booking.id">
-                                    <td>{{ booking.start }} - {{ booking.end }}</td>
-                                    <td>{{ booking.notes }}</td>
-                                    <td>
-                                        <button class="btn btn-danger btn-sm" @click="deleteBooking(booking)">Delete</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </template>
-
-                    <template v-else>
-                        <p class="text-center">The client has no bookings.</p>
-                    </template>
-
+                    <bookings-list
+                        :bookings="internalClient.bookings"
+                        @delete="deleteBooking"
+                    />
                 </div>
 
                 <!-- Journals -->
@@ -83,12 +60,22 @@ import axios from 'axios';
 export default {
     name: 'ClientShow',
 
-    props: ['client'],
+    props: {
+        client: {
+            type: Object,
+            required: true
+        }
+    },
 
     data() {
         return {
             currentTab: 'bookings',
+            internalClient: null
         }
+    },
+
+    created () {
+        this.internalClient = this.client
     },
 
     methods: {
@@ -96,8 +83,15 @@ export default {
             this.currentTab = newTab;
         },
 
-        deleteBooking(booking) {
-            axios.delete(`/bookings/${booking.id}`);
+        async deleteBooking(booking) {
+            try {
+                await axios.delete(`/bookings/${booking.id}`);
+            } catch (error) {
+                console.log(error)
+                return
+            }
+
+            this.internalClient.bookings = this.internalClient.bookings.filter(b => b.id !== booking.id)
         }
     }
 }

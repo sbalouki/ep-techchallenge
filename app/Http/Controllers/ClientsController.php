@@ -2,52 +2,66 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\StoreClient;
 use App\Client;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreClientRequest;
+use App\Http\Resources\ClientResource;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class ClientsController extends Controller
 {
-    public function index()
+    public function index(): View
     {
-        $clients = Client::all();
+        $clients = Client::withCount('bookings')->whereUserId(auth()->id())->get();
 
-        foreach ($clients as $client) {
-            $client->append('bookings_count');
-        }
-
-        return view('clients.index', ['clients' => $clients]);
+        return view('clients.index', [
+            'clients' => $clients
+        ]);
     }
 
-    public function create()
+    public function create(): View
     {
         return view('clients.create');
     }
 
-    public function show($client)
+    public function show($clientId): View
     {
-        $client = Client::where('id', $client)->first();
+        $client = Client::with('bookings')->find($clientId);
 
-        return view('clients.show', ['client' => $client]);
+        $this->authorize('view', $client);
+
+        return view('clients.show', [
+            'client' => new ClientResource($client)
+        ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreClientRequest $request): JsonResponse
     {
-        $client = new Client;
-        $client->name = $request->get('name');
-        $client->email = $request->get('email');
-        $client->phone = $request->get('phone');
-        $client->adress = $request->get('adress');
-        $client->city = $request->get('city');
-        $client->postcode = $request->get('postcode');
-        $client->save();
+        $client = resolve(StoreClient::class)->execute(
+            auth()->id(),
+            $request->get('name'),
+            $request->get('email'),
+            $request->get('phone'),
+            $request->get('address'),
+            $request->get('city'),
+            $request->get('postcode')
+        );
 
-        return $client;
+        return response()->json([
+            'client' => new ClientResource($client)
+        ], Response::HTTP_CREATED);
     }
 
-    public function destroy($client)
+    public function destroy(int $clientId): JsonResponse
     {
-        Client::where('id', $client)->delete();
+        $client = Client::findOrFail($clientId);
 
-        return 'Deleted';
+        $this->authorize('delete', $client);
+
+        $client->delete();
+
+        return response()->json([], Response::HTTP_NO_CONTENT);
     }
 }

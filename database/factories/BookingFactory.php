@@ -3,6 +3,7 @@
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
 
 use App\Booking;
+use App\Client;
 use Faker\Generator as Faker;
 use Illuminate\Support\Carbon;
 
@@ -14,5 +15,6 @@ $factory->define(Booking::class, function (Faker $faker) {
         'start' => $start,
         'end' => $end,
         'notes' => $faker->boolean(30) ? $faker->paragraphs(1, true) : '',
+        'client_id' => factory(Client::class)
     ];
 });
